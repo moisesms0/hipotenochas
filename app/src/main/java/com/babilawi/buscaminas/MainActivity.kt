@@ -2,22 +2,24 @@ package com.babilawi.buscaminas
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.Gravity
 import android.view.Menu
 import android.view.MenuItem
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
 import android.widget.Button
-
+import android.widget.Spinner
 import android.widget.Toast
+
 import androidx.appcompat.app.AlertDialog
 import androidx.gridlayout.widget.GridLayout
 import java.util.Random
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var gridLayout: GridLayout
-    private val filas = 8
-    private val columnas = 8
+
+    private var rows = 8
+    private var cols = 8
+    private var totalMinas = 10
     private lateinit var botones: Array<Array<Button>>
     private lateinit var tableroMinas: Array<BooleanArray>
 
@@ -25,15 +27,15 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-
+        // Inflar el toolbar
         val toolbar: androidx.appcompat.widget.Toolbar = findViewById(R.id.toolbar)
         toolbar.inflateMenu(R.menu.nav_menu)
         setSupportActionBar(toolbar)
 
-        gridLayout = findViewById(R.id.gridLayout)
-
         crearTablero()
     }
+
+
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.nav_menu, menu)
@@ -48,67 +50,84 @@ class MainActivity : AppCompatActivity() {
                     setTitle("Instrucciones")
                     setMessage("")
                     setPositiveButton("Aceptar") { _, _ ->
-                    }
 
+                    }
                 }
-                val dialog = builder.create()
-                dialog.show()}
+                val instrucciones = builder.create()
+                instrucciones.show()}
 
             R.id.configuraJuego -> {
-
+                mostrarAlertaDificultad()
             }
-
             R.id.nuevoJuego -> {
-                reiniciarJuego()
+                crearTablero()
             }
         }
         return super.onOptionsItemSelected(item)
     }
 
     private fun crearTablero() {
-        gridLayout.rowCount = filas
-        gridLayout.columnCount = columnas
+        val gridLayout = findViewById<GridLayout>(R.id.gridLayout)
 
-        tableroMinas = Array(filas) { BooleanArray(columnas) }
+        // borrar todos los botones
+        gridLayout.removeAllViews()
+
+        gridLayout.rowCount = rows
+        gridLayout.columnCount = cols
+
+        tableroMinas = Array(rows) { BooleanArray(cols) }
 
         // Obtiene el ancho de la pantalla para calcular el ancho de los botones
         val anchoPantalla = resources.displayMetrics.widthPixels
-        val anchoBoton = anchoPantalla / columnas
+        val anchoBoton = anchoPantalla / cols
 
-        botones = Array(filas) { row ->
-            Array(columnas) { col ->
+        botones = Array(rows) { row ->
+            Array(cols) { col ->
                 val boton = Button(this)
                 boton.layoutParams = GridLayout.LayoutParams().apply {
                     width = anchoBoton
                     height = ViewGroup.LayoutParams.WRAP_CONTENT
-                }
-                boton.setOnClickListener {
-                    if (esMina(row, col)) {
-                        mostrarAlertaReinicio()
-                        boton.text = "X"
-                    } else {
-                        val minasAdyacentes = contarMinasAdyacentes(row, col)
-                        boton.text = minasAdyacentes.toString()
-                        if (boton.text.toString().toInt() == 0){
-                            revelarCeldasAdyacentes(row, col)
-                        }
 
-                    }
+
                 }
-                boton.setOnLongClickListener {
-                    if (boton.text == "F") {
-                        boton.text = ""
-                    } else {
-                        boton.text = "F"
-                    }
-                    true
-                }
+                boton.setPadding(0,0,0,0)
+                buttonListeners(boton, row, col)
                 gridLayout.addView(boton)
                 boton
             }
         }
-
         colocarMinasAleatoriamente()
+    }
+
+    private fun buttonListeners(boton: Button, row: Int, col: Int){
+        boton.setOnClickListener {
+            if (boton.text == "F") return@setOnClickListener
+            if (esMina(row, col)) {
+                mostrarAlertaReinicio()
+                boton.text = "X"
+            } else {
+                val minasAdyacentes = contarMinasAdyacentes(row, col)
+                boton.text = minasAdyacentes.toString()
+                if (boton.text.toString().toInt() == 0){
+                    revelarCeldasAdyacentes(row, col)
+                }
+            }
+        }
+        boton.setOnLongClickListener {
+            if (esMina(row, col)) {
+                // crear toast
+                val toast = Toast.makeText(this, "¡Hipotenocha encontrada!", Toast.LENGTH_SHORT)
+                toast.show()
+            }else{
+                mostrarAlertaReinicio()
+            }
+            if (boton.text == "F") {
+                boton.text = ""
+            } else {
+                boton.text = "F"
+            }
+            true
+        }
     }
 
     private fun esMina(row: Int, col: Int): Boolean {
@@ -123,7 +142,7 @@ class MainActivity : AppCompatActivity() {
                 val r = row + i
                 val c = col + j
 
-                if (r in 0 until filas && c in 0 until columnas && !(i == 0 && j == 0)) {
+                if (r in 0 until rows && c in 0 until cols && !(i == 0 && j == 0)) {
                     if (esMina(r, c)) {
                         count++
                     }
@@ -135,12 +154,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun colocarMinasAleatoriamente() {
         val random = Random()
-        val totalMinas = 10
         var minasColocadas = 0
 
         while (minasColocadas < totalMinas) {
-            val x = random.nextInt(filas)
-            val y = random.nextInt(columnas)
+            val x = random.nextInt(rows)
+            val y = random.nextInt(cols)
 
             if (!tableroMinas[x][y]) {
                 tableroMinas[x][y] = true
@@ -149,23 +167,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun reiniciarJuego() {
-        for (i in 0 until filas) {
-            for (j in 0 until columnas) {
-                // Limpiar el tablero
-                botones[i][j].text = ""
-                // quitar las minas
-                tableroMinas[i][j] = false
-            }
-        }
-        colocarMinasAleatoriamente()
-    }
 
     private fun revelarCeldasAdyacentes(row: Int, col: Int) {
-        val visited = Array(filas) { BooleanArray(columnas) }
+        val visited = Array(rows) { BooleanArray(cols) }
 
-        fun dfs(r: Int, c: Int) {
-            if (r !in 0 until filas || c !in 0 until columnas || visited[r][c]) return
+        fun revelar(r: Int, c: Int) {
+            if (r !in 0 until rows || c !in 0 until cols || visited[r][c]) return
             visited[r][c] = true
             if (esMina(r, c)) return
             val minasAdyacentes = contarMinasAdyacentes(r, c)
@@ -174,14 +181,13 @@ class MainActivity : AppCompatActivity() {
                 for (i in -1..1) {
                     for (j in -1..1) {
                         if (i != 0 || j != 0) {
-                            dfs(r + i, c + j)
+                            revelar(r + i, c + j)
                         }
                     }
                 }
             }
         }
-
-        dfs(row, col)
+        revelar(row, col)
     }
 
     private fun mostrarAlertaReinicio() {
@@ -190,7 +196,7 @@ class MainActivity : AppCompatActivity() {
             setTitle("¡Perdiste!")
             setMessage("¿Quieres reiniciar la partida?")
             setPositiveButton("Sí") { _, _ ->
-                reiniciarJuego()
+                crearTablero()
             }
             setNegativeButton("No") { dialog, _ ->
                 dialog.dismiss()
@@ -198,5 +204,44 @@ class MainActivity : AppCompatActivity() {
         }
         val dialog = builder.create()
         dialog.show()
+    }
+
+    private fun mostrarAlertaDificultad() {
+        val dialogView = layoutInflater.inflate(R.layout.alert_spinner, null)
+        val spinner = dialogView.findViewById<Spinner>(R.id.spinner)
+
+        // Configurar el adaptador para el Spinner
+        val spinnerItems = arrayOf("Facil", "Intermedio", "Dificil")
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, spinnerItems)
+        spinner.adapter = adapter
+
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Selecciona una dificultad")
+        builder.setView(dialogView)
+        builder.setPositiveButton("Aceptar") { _ , _ ->
+            val selectedOption = spinner.selectedItem as String
+            when(selectedOption){
+                "Facil" -> {
+                    rows = 8
+                    cols = 8
+                    totalMinas = 10
+                }
+                "Intermedio" -> {
+                    rows = 12
+                    cols = 12
+                    totalMinas = 30
+                }
+                "Dificil" -> {
+                    rows = 16
+                    cols = 16
+                    totalMinas = 60
+                }
+            }
+            crearTablero()
+        }
+        builder.setNegativeButton("Cancelar") { dialog, _ ->
+            dialog.dismiss()
+        }
+        builder.create().show()
     }
 }
