@@ -8,6 +8,7 @@
 
     <style name="Theme.Buscaminas" parent="Base.Theme.Buscaminas" >
         <item name="android:actionOverflowButtonStyle">@style/Theme.Buscaminas.OverFlow</item>
+        <item name="colorPrimaryDark">@color/black</item>
     </style>
 
     <style name="Theme.Buscaminas.OverFlow">
