@@ -3,7 +3,14 @@
     <style name="Base.Theme.Buscaminas" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+
     </style>
 
-    <style name="Theme.Buscaminas" parent="Base.Theme.Buscaminas" />
+    <style name="Theme.Buscaminas" parent="Base.Theme.Buscaminas" >
+        <item name="android:actionOverflowButtonStyle">@style/Theme.Buscaminas.OverFlow</item>
+    </style>
+
+    <style name="Theme.Buscaminas.OverFlow">
+        <item name="android:src">@drawable/overflow_menu</item>
+    </style>
 </resources>
