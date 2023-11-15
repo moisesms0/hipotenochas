@@ -2,9 +2,14 @@
 <menu xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android">
     <item
+        android:id="@+id/hipotenocha"
+        app:showAsAction="always"
+        android:title="Hipotenocha"
+        android:icon="@drawable/dolar"/>
+    <item
         android:id="@+id/instrucciones"
         android:title="Instrucciones"
-        android:icon="@drawable/ic_launcher_background"/>
+        />
     <item
         android:id="@+id/nuevoJuego"
         android:layout_width="wrap_content"
