@@ -1,3 +1,8 @@
 <resources>
-    <string name="app_name">Hipotenochas</string>
+    <string name="app_name">Hipotefrutas</string>
+    <string name="instrucciones">En el tablero, cada celda puede contener una mina o estar vacía. Las celdas vacías mostrarán un número, indicando cuántas minas hay en las celdas adyacentes. Tu tarea es utilizar esta información para evitar las minas y descubrir todas las celdas seguras.
+
+Para jugar, simplemente toca una celda para revelar su contenido. Si revelas una mina, perderás la partida. Sin embargo, puedes utilizar el toque largo para marcar celdas sospechosas de contener minas, lo que puede ayudarte a evitar tocarlas accidentalmente.
+
+Ganarás el juego al descubrir todas las celdas seguras, mientras que perderás si tocas una mina. En cualquier momento, puedes reiniciar el juego y ajustar la dificultad según tus preferencias en el menú de configuración.</string>
 </resources>

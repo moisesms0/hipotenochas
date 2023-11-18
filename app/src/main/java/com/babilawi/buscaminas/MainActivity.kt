@@ -1,5 +1,6 @@
 package com.babilawi.buscaminas
 
+import android.graphics.drawable.Drawable
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Menu
@@ -11,19 +12,27 @@ import android.widget.Spinner
 import android.widget.Toast
 
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.gridlayout.widget.GridLayout
 import java.util.Random
 
 class MainActivity : AppCompatActivity() {
 
-
     private var rows = 8
     private var cols = 8
     private var totalMinas = 10
+    private var minasEncontradas = 0;
+    private var juegoEnCurso = true;
     private lateinit var botones: Array<Array<Button>>
     private lateinit var tableroMinas: Array<BooleanArray>
+    private var iconoHipotenocha: Int = R.drawable.manzana
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Desactivar modo oscuro
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
@@ -38,6 +47,12 @@ class MainActivity : AppCompatActivity() {
     // Inflar el menú
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.nav_menu, menu)
+        // Obtener el ítem de menú por su ID
+        val hipotenochaMenuItem = menu?.findItem(R.id.hipotenocha)
+
+        // Cambiar el ícono del ítem de menú usando la variable miembro
+        hipotenochaMenuItem?.setIcon(iconoHipotenocha)
+
         return super.onCreateOptionsMenu(menu)
     }
 
@@ -49,7 +64,7 @@ class MainActivity : AppCompatActivity() {
                 val builder = AlertDialog.Builder(this)
                 builder.apply {
                     setTitle("Instrucciones")
-                    setMessage("")
+                    setMessage(R.string.instrucciones)
                     setPositiveButton("Aceptar") { _, _ ->
 
                     }
@@ -65,12 +80,18 @@ class MainActivity : AppCompatActivity() {
             R.id.nuevoJuego -> {
                 crearTablero()
             }
+            // Mostrar personajes
+            R.id.hipotenocha -> {
+                mostrarAlertaPersonaje()
+            }
         }
         return super.onOptionsItemSelected(item)
     }
 
     private fun crearTablero() {
         val gridLayout = findViewById<GridLayout>(R.id.gridLayout)
+        minasEncontradas = 0
+        juegoEnCurso = true
 
         // borrar todos los botones cada vez que se cree la partida
         gridLayout.removeAllViews()
@@ -84,7 +105,7 @@ class MainActivity : AppCompatActivity() {
 
         // Obtiene el ancho de la pantalla para calcular el ancho de los botones
         val anchoPantalla = resources.displayMetrics.widthPixels
-        val anchoBoton = anchoPantalla / cols
+        val anchoBoton = (anchoPantalla - (cols - 1) * 22) / cols
 
         // Se define el array de botones iterando sobre las filas y columnas para crear cada botón
         botones = Array(rows) { row ->
@@ -93,11 +114,19 @@ class MainActivity : AppCompatActivity() {
                 // Se define el tamaño de cada botón
                 boton.layoutParams = GridLayout.LayoutParams().apply {
                     width = anchoBoton
-                    height = ViewGroup.LayoutParams.WRAP_CONTENT
+                    height = if (rows == 8) {
+                        anchoBoton
+                    } else {
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                    }
+                    setMargins(10, 10, 10, 10)
                 }
 
                 // Se elimina el padding para que se visualice correctamente en maxima dificultad
                 boton.setPadding(0,0,0,0)
+
+                // Se añade fondo del boton
+                boton.background = getDrawable(R.drawable.btn_background_primary)
 
                 // Se añaden los listeners a cada botón
                 buttonListeners(boton, row, col)
@@ -116,35 +145,46 @@ class MainActivity : AppCompatActivity() {
         // Listener para cuando se hace click en un botón que comprueba si el boton es una mina
         // o si la casilla esta marcada
         boton.setOnClickListener {
-            if (boton.text == "F") return@setOnClickListener
+            if (boton.text == "F" || !juegoEnCurso) return@setOnClickListener
 
             // Si es mina se pierde la partida, si no lo es se revela esa casilla
             // y las adyacentes que no tengan minas cerca
             if (esMina(row, col)) {
-                mostrarAlertaReinicio()
-                boton.text = "X"
+                mostrarAlertaReinicio(2)
+                boton.background = AppCompatResources.getDrawable(this, R.drawable.bomba)
             } else {
                 val minasAdyacentes = contarMinasAdyacentes(row, col)
-                boton.text = minasAdyacentes.toString()
-                if (boton.text.toString().toInt() == 0){
+                if (minasAdyacentes == 0) {
                     revelarCeldasAdyacentes(row, col)
+                }else{
+                    boton.background = AppCompatResources.getDrawable(this, R.drawable.btn_background_secondary)
+                    boton.text = minasAdyacentes.toString()
                 }
             }
         }
+
         // Listener para cuando se hace click largo en un botón, para marcar la casilla
         boton.setOnLongClickListener {
+            // Si el juego a finalizado o si la casilla ya esta marcada no hará nada
+            if (!juegoEnCurso || boton.background.constantState == getDrawable(iconoHipotenocha)?.constantState) {
+                // No hacer nada si el juego no está en curso
+                return@setOnLongClickListener true
+            }
+
             if (esMina(row, col)) {
                 // Crear toast en caso de se encuentre una hipotenocha
                 val toast = Toast.makeText(this, "¡Hipotenocha encontrada!", Toast.LENGTH_SHORT)
                 toast.show()
+                minasEncontradas++
+                // Si se encuentran todas las minas se gana la partida
+                if (minasEncontradas == totalMinas){
+                    mostrarAlertaReinicio(1)
+                }
             }else{
-                mostrarAlertaReinicio()
+                mostrarAlertaReinicio(2)
             }
-            if (boton.text == "F") {
-                boton.text = ""
-            } else {
-                boton.text = "F"
-            }
+            boton.background = getDrawable(iconoHipotenocha)
+
             true
         }
     }
@@ -205,7 +245,15 @@ class MainActivity : AppCompatActivity() {
             if (esMina(r, c)) return
             // Si no es una mina se revela el numero de minas adyacentes
             val minasAdyacentes = contarMinasAdyacentes(r, c)
-            botones[r][c].text = minasAdyacentes.toString()
+            botones[r][c].background = AppCompatResources.getDrawable(this, R.drawable.btn_background_secondary)
+            if (minasAdyacentes ==  0){
+                botones[r][c].text = ""
+                botones[r][c].isEnabled = false
+
+            }else{
+                botones[r][c].text = minasAdyacentes.toString()
+            }
+
             // Si no hay minas adyacentes se vuelve a llamar a la funcion
             if (minasAdyacentes == 0) {
                 for (i in -1..1) {
@@ -221,20 +269,54 @@ class MainActivity : AppCompatActivity() {
     }
 
     // Muestra una alerta para cuando el usuario pierde la partida y le permite reiniciar
-    private fun mostrarAlertaReinicio() {
+    private fun mostrarAlertaReinicio(opcion: Int) {
+        val titulo = if (opcion == 1) "¡Ganaste!" else "¡Perdiste!"
+
         val builder = AlertDialog.Builder(this)
         builder.apply {
-            setTitle("¡Perdiste!")
+            setTitle(titulo)
             setMessage("¿Quieres reiniciar la partida?")
             setPositiveButton("Sí") { _, _ ->
                 crearTablero()
             }
             setNegativeButton("No") { dialog, _ ->
+                juegoEnCurso = false
                 dialog.dismiss()
             }
+            setCancelable(false)
         }
         val dialog = builder.create()
         dialog.show()
+    }
+
+    private fun mostrarAlertaPersonaje() {
+        val dialogView = layoutInflater.inflate(R.layout.alert_spinner, null)
+        val spinner = dialogView.findViewById<Spinner>(R.id.spinner)
+
+        // Configurar la lista de personajes con sus nombres e IDs de recursos de imágenes
+        val personajes = listOf(
+            Personaje("Manzana", R.drawable.manzana),
+            Personaje("Pera", R.drawable.pera),
+            Personaje("Sandia", R.drawable.sandia)
+        )
+
+        // Configurar el adaptador personalizado
+        val adapter = PersonajeAdapter(this, R.layout.item_personaje_spinner, personajes)
+        spinner.adapter = adapter
+
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Selecciona un Personaje")
+        builder.setView(dialogView)
+        builder.setPositiveButton("Aceptar") { _, _ ->
+            val selectedPersonaje = spinner.selectedItem as Personaje
+            iconoHipotenocha = selectedPersonaje.imagenResId
+            invalidateOptionsMenu()
+
+        }
+        builder.setNegativeButton("Cancelar") { dialog, _ ->
+            dialog.dismiss()
+        }
+        builder.create().show()
     }
 
     // Muestra una alerta para poder cambiar de dificultad
@@ -251,10 +333,9 @@ class MainActivity : AppCompatActivity() {
         builder.setTitle("Selecciona una dificultad")
         builder.setView(dialogView)
         builder.setPositiveButton("Aceptar") { _ , _ ->
-            val selectedOption = spinner.selectedItem as String
 
             // Dependiendo de la dificultad se cambia el tamaño del tablero y la cantidad de minas
-            when(selectedOption){
+            when(spinner.selectedItem as String){
                 "Facil" -> {
                     rows = 8
                     cols = 8
@@ -278,4 +359,6 @@ class MainActivity : AppCompatActivity() {
         }
         builder.create().show()
     }
+
+
 }

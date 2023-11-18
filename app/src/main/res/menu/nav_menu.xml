@@ -5,7 +5,7 @@
         android:id="@+id/hipotenocha"
         app:showAsAction="always"
         android:title="Hipotenocha"
-        android:icon="@drawable/dolar"/>
+        android:icon="@drawable/manzana"/>
     <item
         android:id="@+id/instrucciones"
         android:title="Instrucciones"
