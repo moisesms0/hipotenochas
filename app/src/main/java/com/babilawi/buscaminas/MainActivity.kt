@@ -1,8 +1,10 @@
 package com.babilawi.buscaminas
 
 import android.graphics.drawable.Drawable
+import android.graphics.drawable.ScaleDrawable
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.Gravity
 import android.view.Menu
 import android.view.MenuItem
 import android.view.ViewGroup
@@ -151,7 +153,12 @@ class MainActivity : AppCompatActivity() {
             // y las adyacentes que no tengan minas cerca
             if (esMina(row, col)) {
                 mostrarAlertaReinicio(2)
-                boton.background = AppCompatResources.getDrawable(this, R.drawable.bomba)
+                if (rows == 8) {
+                    boton.background = AppCompatResources.getDrawable(this, R.drawable.bomba)
+                } else {
+                    boton.text = "X"
+                }
+
             } else {
                 val minasAdyacentes = contarMinasAdyacentes(row, col)
                 if (minasAdyacentes == 0) {
@@ -183,7 +190,12 @@ class MainActivity : AppCompatActivity() {
             }else{
                 mostrarAlertaReinicio(2)
             }
-            boton.background = getDrawable(iconoHipotenocha)
+            if (rows == 8) {
+                boton.background = getDrawable(iconoHipotenocha)
+            } else {
+                boton.text = "F"
+            }
+
 
             true
         }
