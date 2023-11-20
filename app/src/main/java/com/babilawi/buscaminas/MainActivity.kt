@@ -1,10 +1,7 @@
 package com.babilawi.buscaminas
 
-import android.graphics.drawable.Drawable
-import android.graphics.drawable.ScaleDrawable
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.Gravity
 import android.view.Menu
 import android.view.MenuItem
 import android.view.ViewGroup
@@ -24,8 +21,8 @@ class MainActivity : AppCompatActivity() {
     private var rows = 8
     private var cols = 8
     private var totalMinas = 10
-    private var minasEncontradas = 0;
-    private var juegoEnCurso = true;
+    private var minasEncontradas = 0
+    private var juegoEnCurso = true
     private lateinit var botones: Array<Array<Button>>
     private lateinit var tableroMinas: Array<BooleanArray>
     private var iconoHipotenocha: Int = R.drawable.manzana
@@ -33,7 +30,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Desactivar modo oscuro
-        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -212,7 +209,7 @@ class MainActivity : AppCompatActivity() {
                 mostrarAlertaReinicio(2)
             }
             if (rows == 8) {
-                boton.background = getDrawable(iconoHipotenocha)
+                boton.background = AppCompatResources.getDrawable(this, iconoHipotenocha)
             } else {
                 boton.text = "F"
             }
