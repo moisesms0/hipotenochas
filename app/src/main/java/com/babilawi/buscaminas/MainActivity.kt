@@ -46,7 +46,11 @@ class MainActivity : AppCompatActivity() {
         crearTablero()
     }
 
-    // Inflar el menú
+    /**
+     * Se ejecuta cuando se crea el menú.
+     * @param menu Menú
+     * @return true si se ha creado el menú, false si no
+     */
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.nav_menu, menu)
         // Obtener el ítem de menú por su ID
@@ -58,7 +62,11 @@ class MainActivity : AppCompatActivity() {
         return super.onCreateOptionsMenu(menu)
     }
 
-    // Opciones del menú
+    /**
+     * Se ejecuta cuando se pulsa un ítem del menú.
+     * @param item Ítem del menú pulsado
+     * @return true si se ha pulsado un ítem del menú, false si no
+     */
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             // Instrucciones del juego
@@ -90,6 +98,13 @@ class MainActivity : AppCompatActivity() {
         return super.onOptionsItemSelected(item)
     }
 
+    /**
+     * Crea un nuevo tablero de juego con las configuraciones actuales de filas y columnas.
+     * Inicializa la interfaz de usuario con botones dispuestos en un GridLayout y establece
+     * las propiedades necesarias para el juego de buscaminas.
+     * Se encarga de la disposición de las minas, el tamaño de los botones y la asignación
+     * de listeners para cada botón.
+     */
     private fun crearTablero() {
         val gridLayout = findViewById<GridLayout>(R.id.gridLayout)
         minasEncontradas = 0
@@ -143,6 +158,12 @@ class MainActivity : AppCompatActivity() {
         colocarMinasAleatoriamente()
     }
 
+    /**
+     * Añade los listeners a cada botón del tablero.
+     * @param boton Botón al que se le añaden los listeners
+     * @param row Fila del botón
+     * @param col Columna del botón
+     */
     private fun buttonListeners(boton: Button, row: Int, col: Int){
         // Listener para cuando se hace click en un botón que comprueba si el boton es una mina
         // o si la casilla esta marcada
@@ -201,12 +222,21 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Comprobar si una casilla es una mina
+    /**
+     * Comprueba si la casilla es una mina.
+     * @param row Fila de la casilla actual
+     * @param col Columna de la casilla actual
+     * @return true si la casilla es una mina, false si no lo es
+     */
     private fun esMina(row: Int, col: Int): Boolean {
         return tableroMinas[row][col]
     }
 
-    // Contar y devolver la cantidad de minas adyacentes a una casilla
+    /**
+     * Cuenta el número de minas adyacentes a la casilla actual.
+     * @param row Fila de la casilla actual
+     * @param col Columna de la casilla actual
+     */
     private fun contarMinasAdyacentes(row: Int, col: Int): Int {
         var count = 0
 
@@ -228,6 +258,9 @@ class MainActivity : AppCompatActivity() {
         return count
     }
 
+    /**
+     * Coloca las minas aleatoriamente en el tablero.
+     */
     private fun colocarMinasAleatoriamente() {
         val random = Random()
         var minasColocadas = 0
@@ -245,7 +278,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
+    /**
+     * Revela las casillas adyacentes a la casilla actual.
+     * @param row Fila de la casilla actual
+     * @param col Columna de la casilla actual
+     */
     private fun revelarCeldasAdyacentes(row: Int, col: Int) {
         val visited = Array(rows) { BooleanArray(cols) }
 
@@ -280,7 +317,10 @@ class MainActivity : AppCompatActivity() {
         revelar(row, col)
     }
 
-    // Muestra una alerta para cuando el usuario pierde la partida y le permite reiniciar
+    /**
+     * Muestra una alerta para reiniciar la partida.
+     * @param opcion 1 si se ha ganado la partida, 2 si se ha perdido
+     */
     private fun mostrarAlertaReinicio(opcion: Int) {
         val titulo = if (opcion == 1) "¡Ganaste!" else "¡Perdiste!"
 
@@ -301,6 +341,9 @@ class MainActivity : AppCompatActivity() {
         dialog.show()
     }
 
+    /**
+     * Muestra una alerta para poder cambiar de personaje.
+     */
     private fun mostrarAlertaPersonaje() {
         val dialogView = layoutInflater.inflate(R.layout.alert_spinner, null)
         val spinner = dialogView.findViewById<Spinner>(R.id.spinner)
@@ -331,7 +374,9 @@ class MainActivity : AppCompatActivity() {
         builder.create().show()
     }
 
-    // Muestra una alerta para poder cambiar de dificultad
+    /**
+     * Muestra una alerta para poder cambiar la dificultad del juego.
+     */
     private fun mostrarAlertaDificultad() {
         val dialogView = layoutInflater.inflate(R.layout.alert_spinner, null)
         val spinner = dialogView.findViewById<Spinner>(R.id.spinner)
